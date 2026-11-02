@@ -2,19 +2,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+This project uses [Vite+](https://viteplus.dev/guide/) (`vp`) for package management and tooling. Install the `vp` CLI, then install dependencies and run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+vp install
+vp run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+The app runs on Next.js, so use `vp run <script>` for the `package.json` scripts (`vp dev` and `vp build` are Vite built-ins and do not start this app).
+
+| Task                        | Command                            |
+| --------------------------- | ---------------------------------- |
+| Start the dev server        | `vp run dev`                       |
+| Production build            | `vp run build`                     |
+| Serve the production build  | `vp run start`                     |
+| Format, lint and type-check | `vp check` (`vp check --fix`)      |
+| Run tests                   | `vp test`                          |
+| Add / remove a dependency   | `vp add <pkg>` / `vp remove <pkg>` |
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

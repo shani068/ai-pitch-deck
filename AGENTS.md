@@ -1,3 +1,49 @@
+# Project rules
+
+## Toolchain & dependencies
+
+- Use `vp` for every package/tool command (`vp install|add|remove|dlx`). Never call npm/pnpm/yarn/bun/npx
+  directly or change `packageManager`.
+- This app runs on Next.js: use `vp run dev` / `vp run build` (`vp dev`/`vp build` are Vite built-ins).
+- Never add, upgrade, remove or replace a dependency without explicit approval. Prefer installed packages
+  and native Next.js/React/Web APIs; if a package is truly needed, explain why and ask first.
+- No other styling systems, component/UI libraries or theme libraries without approval.
+
+## UI, styling & validation
+
+- Tailwind CSS v4: configure in CSS (`@theme` in `app/globals.css`); no `tailwind.config.*`. Tailwind is
+  compiled by `@tailwindcss/turbopack` (`next.config.ts`); do not add PostCSS config.
+- shadcn/ui (Radix base, see `components.json`): reuse `components/ui` first; add components with
+  `vp dlx shadcn@latest add <name>`, asking first if it would add new npm dependencies. Use the semantic
+  tokens in `app/globals.css` instead of hard-coded colours; merge classes with `cn` from `@/lib/utils`.
+- Dark mode follows the OS (`prefers-color-scheme`); do not switch to a class strategy or add a toggle
+  without approval.
+- Zod v4 only (`import { z } from "zod"`): v4 APIs such as `z.email()`, the `error` param and
+  `z.treeifyError`; never Zod v3 APIs or `zod/v3`.
+- Follow existing patterns; keep code simple; no speculative abstractions; leave unrelated code untouched.
+
+## Security (every change and review)
+
+Follow OWASP Top 10. Before finishing a task, state the relevant risks and how they were handled.
+
+- XSS: render untrusted data through JSX; no `dangerouslySetInnerHTML` unless sanitized and justified;
+  allow only http(s) or relative URLs in `href`/`src`.
+- Validate untrusted input with Zod at every boundary (forms, Server Actions, route handlers, params,
+  external API responses). Client validation is UX only; the server must re-validate.
+- Secrets never go in client code, `NEXT_PUBLIC_*`, browser storage, URLs, logs or error messages. Mark
+  server-only modules with `server-only` (not installed: ask before adding it).
+- Authorize on the server for every request (Server Components/Actions, route handlers, data layer);
+  client- or proxy-only role checks are not access control. Prefer HttpOnly/Secure/SameSite cookies over
+  tokens in browser storage.
+- CSRF: Server Actions check Origin; cookie-authenticated route handlers that change state need their
+  own protection. Never change state on GET.
+- Redirects: relative paths or an allowlist only. Uploads: validate type and size on the server.
+- Headers/CSP: `next.config.ts` `headers()` or `proxy.ts` (nonce-based CSP forces dynamic rendering).
+- If a fix needs backend or infrastructure changes, explain the risk and recommend the fix instead of
+  shipping a frontend-only workaround.
+- Details: `node_modules/next/dist/docs/01-app/02-guides/` (`data-security.md`, `authentication.md`,
+  `content-security-policy.md`).
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
