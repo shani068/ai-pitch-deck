@@ -1,21 +1,33 @@
 // use prisma-8
 
-model User {
-  id        Int                @id @default(autoincrement())
-  email     String             @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt DateTime           @default(now()) @onCreate(now())
-  updatedAt temporal.UpdatedAt
+enum DeckStatus {
+  PENDING
+  GENERATING
+  COMPLETE
+  FAILED
 }
 
-model Post {
-  id        Int                @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User               @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt DateTime           @default(now()) @onCreate(now())
-  updatedAt temporal.UpdatedAt
+model Deck {
+  id           String     @id @onCreate(cuid(2))
+  idea         String       
+  title        String?
+  status       DeckStatus @default(PENDING)
+  errorMessage String?
+  createdAt    DateTime   @default(now())
+  updatedAt    temporal.UpdatedAt
+  slides       Slide[]
+}
+
+model Slide {
+  id          String   @id @onCreate(cuid(2))
+  deckId      String
+  deck        Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  order       Int
+  title       String
+  content     String    
+  imagePrompt String    
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+
+  @@index([deckId])
 }
