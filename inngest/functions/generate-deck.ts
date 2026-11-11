@@ -39,6 +39,12 @@ export const generateDeck = inngest.createFunction(
     triggers: [deckGenerate],
     // Inngest skips a repeated event for the same deck for 24 hours.
     idempotency: "event.data.deckId",
+    // Anyone can request a deck, so spend is capped for everyone together: at most 3 decks
+    // generate at once and 30 start per hour. Both queue excess runs (the deck stays PENDING)
+    // instead of dropping them; `rateLimit` is not used because it discards events, which would
+    // leave decks PENDING forever.
+    concurrency: { limit: 3 },
+    throttle: { limit: 30, period: "1h" },
     // Runs once, after the run failed without retrying or used all its retries. FAILED is only
     // written here, so a deck is never marked failed while a retry is still pending.
     onFailure: async ({ event, error, step }) => {

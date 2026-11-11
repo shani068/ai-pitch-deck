@@ -43,6 +43,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // Slide images are fetched by the image optimizer and served from /_next/image on this origin,
+  // so the CSP's `img-src 'self'` stays unchanged. Picsum's redirect to fastly.picsum.photos is
+  // followed by the optimizer (default maximumRedirects: 3).
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "picsum.photos", pathname: "/seed/**" },
+      { protocol: "https", hostname: "ik.imagekit.io" },
+    ],
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

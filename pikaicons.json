@@ -1,0 +1,84 @@
+{
+  "framework": "react-tsx",
+  "dir": "src/components/icons",
+  "importAlias": "@/src/components/icons",
+  "variant": "stroke",
+  "icons": {
+    "alert-circle": {
+      "name": "alert-circle",
+      "variant": "stroke"
+    },
+    "arrow-left": {
+      "name": "arrow-left",
+      "variant": "stroke"
+    },
+    "arrow-right": {
+      "name": "arrow-right",
+      "variant": "stroke"
+    },
+    "burger-menu-three": {
+      "name": "burger-menu-three",
+      "variant": "stroke"
+    },
+    "check-tick-circle": {
+      "name": "check-tick-circle",
+      "variant": "stroke"
+    },
+    "chevron-down": {
+      "name": "chevron-down",
+      "variant": "stroke"
+    },
+    "chevron-right": {
+      "name": "chevron-right",
+      "variant": "stroke"
+    },
+    "clock-default": {
+      "name": "clock-default",
+      "variant": "stroke"
+    },
+    "file-default": {
+      "name": "file-default",
+      "variant": "stroke"
+    },
+    "laptop": {
+      "name": "laptop",
+      "variant": "stroke"
+    },
+    "layer-three": {
+      "name": "layer-three",
+      "variant": "stroke"
+    },
+    "lightning-thunder-electric-on": {
+      "name": "lightning-thunder-electric-on",
+      "variant": "stroke"
+    },
+    "link-slant": {
+      "name": "link-slant",
+      "variant": "stroke"
+    },
+    "moon": {
+      "name": "moon",
+      "variant": "stroke"
+    },
+    "multiple-cross-cancel-default": {
+      "name": "multiple-cross-cancel-default",
+      "variant": "stroke"
+    },
+    "photo-image-default": {
+      "name": "photo-image-default",
+      "variant": "stroke"
+    },
+    "refresh": {
+      "name": "refresh",
+      "variant": "stroke"
+    },
+    "shield-check": {
+      "name": "shield-check",
+      "variant": "stroke"
+    },
+    "sun": {
+      "name": "sun",
+      "variant": "stroke"
+    }
+  }
+}

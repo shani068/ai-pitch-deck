@@ -16,11 +16,25 @@
 - shadcn/ui (Radix base, see `components.json`): reuse `components/ui` first; add components with
   `vp dlx shadcn@latest add <name>`, asking first if it would add new npm dependencies. Use the semantic
   tokens in `app/globals.css` instead of hard-coded colours; merge classes with `cn` from `@/lib/utils`.
-- Dark mode follows the OS (`prefers-color-scheme`); do not switch to a class strategy or add a toggle
-  without approval.
+- Theme is class-based (`.dark` on `<html>`). It defaults to the OS preference, is set before first paint by
+  `components/theme/theme-script.tsx` and is switched by `components/theme/theme-menu.tsx` (Light, Dark,
+  System). Use the semantic tokens and `dark:` utilities; no theme libraries.
 - Zod v4 only (`import { z } from "zod"`): v4 APIs such as `z.email()`, the `error` param and
   `z.treeifyError`; never Zod v3 APIs or `zod/v3`.
 - Follow existing patterns; keep code simple; no speculative abstractions; leave unrelated code untouched.
+
+## Icons
+
+- Use Pikaicons. Don't hand-draw SVGs or add another icon library. The one exception is the brand mark in
+  `components/brand/logo.tsx` (and its copy in `app/icon.svg`).
+- Find: `vp dlx pikaicons search home "user avatar"` (each argument is one query; quote phrases)
+- React: `vp dlx pikaicons add <name…>` writes components to `src/components/icons/` (config in
+  `pikaicons.json`); import them from `@/src/components/icons`. These files are generated: don't edit them.
+- Plain HTML: `vp dlx pikaicons show <name…>` prints SVG markup to paste inline
+- shadcn components arrive with lucide imports (`components.json` has no Pikaicons option): swap them for
+  Pikaicons right after `vp dlx shadcn@latest add`, and never re-add `lucide-react`.
+- Variants: stroke by default; `name:solid`, `name:duo-stroke`, … per icon
+- Free icons work without signing in; search marks the rest "locked". For a locked icon, use a free one the error suggests, or ask me to run `vp dlx pikaicons login`. Never ask me for the key.
 
 ## Security (every change and review)
 
