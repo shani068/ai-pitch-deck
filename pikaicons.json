@@ -36,6 +36,18 @@
       "name": "clock-default",
       "variant": "stroke"
     },
+    "envelope-default": {
+      "name": "envelope-default",
+      "variant": "stroke"
+    },
+    "eye-off": {
+      "name": "eye-off",
+      "variant": "stroke"
+    },
+    "eye-on": {
+      "name": "eye-on",
+      "variant": "stroke"
+    },
     "file-default": {
       "name": "file-default",
       "variant": "stroke"
@@ -56,12 +68,24 @@
       "name": "link-slant",
       "variant": "stroke"
     },
+    "lock-close": {
+      "name": "lock-close",
+      "variant": "stroke"
+    },
+    "log-out-right": {
+      "name": "log-out-right",
+      "variant": "stroke"
+    },
     "moon": {
       "name": "moon",
       "variant": "stroke"
     },
     "multiple-cross-cancel-default": {
       "name": "multiple-cross-cancel-default",
+      "variant": "stroke"
+    },
+    "pencil-edit": {
+      "name": "pencil-edit",
       "variant": "stroke"
     },
     "photo-image-default": {
@@ -76,8 +100,16 @@
       "name": "shield-check",
       "variant": "stroke"
     },
+    "sparkle-ai-01": {
+      "name": "sparkle-ai-01",
+      "variant": "stroke"
+    },
     "sun": {
       "name": "sun",
+      "variant": "stroke"
+    },
+    "user-default": {
+      "name": "user-default",
       "variant": "stroke"
     }
   }

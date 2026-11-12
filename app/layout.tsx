@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -7,21 +7,11 @@ import { ThemeScript } from "@/components/theme/theme-script";
 
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// One typeface for the whole app: body text and headings (see --font-sans / --font-heading in
+// app/globals.css). Monospace labels use the system monospace stack, so nothing else downloads.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Display face for headings (see --font-heading in app/globals.css).
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -36,11 +26,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // ThemeScript adds `.dark` before hydration, so the server and client class lists differ.
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} h-full antialiased`}
-    >
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
       <head>
         <ThemeScript />
       </head>

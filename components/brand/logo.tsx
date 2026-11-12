@@ -23,14 +23,26 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-/** Mark plus the "AI Pitch Deck" wordmark, set as live text so it themes and scales. */
+/** The "AI Pitch Deck" wordmark alone, set as live text so it themes and scales. */
+export function Wordmark({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "font-heading text-lg leading-none font-semibold tracking-tight whitespace-nowrap",
+        className,
+      )}
+    >
+      <span className="text-primary">AI</span> Pitch Deck
+    </span>
+  );
+}
+
+/** Mark plus wordmark. */
 export function Logo({ className, markClassName }: { className?: string; markClassName?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <LogoMark className={markClassName} />
-      <span className="font-heading text-lg leading-none font-semibold tracking-tight">
-        <span className="text-primary">AI</span> Pitch Deck
-      </span>
+      <Wordmark />
     </span>
   );
 }

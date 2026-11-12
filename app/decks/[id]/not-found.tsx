@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Container } from "@/components/site/container";
+import { CREATE_DECK_HREF } from "@/components/site/nav-links";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, FileIcon } from "@/src/components/icons";
 
@@ -16,7 +17,7 @@ export default function DeckNotFound() {
           This link doesn&apos;t match any pitch deck. Check that you copied the whole link.
         </p>
         <Button asChild variant="outline" size="lg">
-          <Link href="/#create">
+          <Link href={CREATE_DECK_HREF}>
             <ArrowLeftIcon aria-hidden="true" />
             Create a new pitch deck
           </Link>

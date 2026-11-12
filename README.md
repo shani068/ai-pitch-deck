@@ -50,9 +50,13 @@ src/prisma/contract.prisma  --(prisma contract emit)-->  contract.json + contrac
 .
 ├── app/                      Next.js App Router (pages, layout, global styles)
 │   ├── _components/          Page-level components (e.g. idea-form.tsx)
+│   ├── (auth)/               Sign-in and sign-up pages (/sign-in, /sign-up)
+│   ├── api/auth/[...all]/    Better Auth endpoints (/api/auth/*)
+│   ├── new/                  Idea form for signed-in users (/new)
 │   └── decks/[id]/           Public deck page (status, slides, retry)
 ├── components/ui/            shadcn/ui components (generated with `vp dlx shadcn@latest add`)
 ├── lib/                      Shared utilities (cn helper)
+├── src/auth/                 Better Auth server instance, browser client, validation and errors
 ├── src/decks/                Deck Server Actions, queries and validation
 ├── src/ai/pitch-deck/        Pitch deck agent, guardrails and generation service
 ├── inngest/                  Inngest client and the background generate-deck function
@@ -66,6 +70,7 @@ src/prisma/contract.prisma  --(prisma contract emit)-->  contract.json + contrac
 ├── public/                   Static assets
 ├── prisma.config.ts          Prisma CLI configuration
 ├── next.config.ts            Next.js config (security headers, Cache Components)
+├── proxy.ts                  Cookie-only redirects for /new, /sign-in and /sign-up (convenience only)
 └── .env.example              Template for required environment variables
 ```
 
@@ -91,10 +96,12 @@ vp run dev                  # http://localhost:3000
 
 Set these in `.env`, which is git-ignored and never committed. `.env.example` is the template.
 
-| Variable       | Required | Description                                                                                    |
-| -------------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `DATABASE_URL` | Yes      | Neon connection string. It can be the pooled (`-pooler`) or direct URL.                        |
-| `DIRECT_URL`   | No       | Explicit direct (unpooled) Neon URL. If set, it overrides the URL derived from `DATABASE_URL`. |
+| Variable             | Required | Description                                                                                                    |
+| -------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`       | Yes      | Neon connection string. It can be the pooled (`-pooler`) or direct URL.                                        |
+| `DIRECT_URL`         | No       | Explicit direct (unpooled) Neon URL. If set, it overrides the URL derived from `DATABASE_URL`.                 |
+| `BETTER_AUTH_SECRET` | Yes      | Signs and encrypts session cookies. At least 32 random characters: `openssl rand -base64 32`. Never commit it. |
+| `BETTER_AUTH_URL`    | Yes      | The app's base URL, such as `http://localhost:3000`. Better Auth trusts this origin.                           |
 
 > **Why direct connections?** Prisma ORM 8 sends session settings that Neon's PgBouncer pooler rejects. So both the app and the Prisma CLI connect to Neon's **direct** endpoint, and `-pooler` is stripped from the host automatically (`src/prisma/connection-url.ts`). Connection pooling happens inside the server process.
 
@@ -121,24 +128,28 @@ The app runs on Next.js, so use `vp run <script>` for `package.json` scripts. `v
 3. **Inspect the schema:** `vp exec prisma db schema`.
 4. **Change the data model:** edit `src/prisma/contract.prisma`, then run `vp run contract:emit`. For a development database, apply the change with `vp exec prisma db update`. For a database whose history matters, plan and apply a migration with `vp exec prisma migration plan --name <change>` and `vp exec prisma db migrate`.
 
-Never reset or drop a database to fix a migration problem. The starter contract contains only the `User` and `Post` models.
+Never reset or drop a database to fix a migration problem. The contract holds the `Deck` and `Slide` models plus Better Auth's tables (`user`, `session`, `account`, `verification`, `rateLimit`). Better Auth reads and writes those by name, so keep their fields exactly as declared, and do not use Better Auth's own `migrate` command.
 
 ## Usage
 
 Decks are generated in the background by Inngest, so run two processes. `.env` needs `OPENAI_API_KEY` and `INNGEST_DEV=1`. Slide images are Picsum placeholders unless `USE_PLACEHOLDER_IMAGES="false"` (see `.env.example`).
 
 ```bash
-vp run dev                                                       # http://localhost:3000
-vp dlx inngest-cli@latest dev -u http://localhost:3000/api/inngest  # http://localhost:8288
+vp run dev                                         # http://localhost:3000
+inngest dev -u http://localhost:3000/api/inngest   # http://localhost:8288
 ```
 
-1. Open [http://localhost:3000](http://localhost:3000), describe your business idea (20 to 2,000 characters) and choose **Generate pitch deck**.
+The `inngest` command is the Inngest CLI binary. Download it for your platform from the [Inngest releases](https://github.com/inngest/inngest/releases) page (`inngest.exe` on Windows) and put it on your `PATH`. `vp dlx inngest-cli@latest` does not work: `vp dlx` skips install scripts, and the `inngest-cli` package downloads its binary in one, so it exits with "Inngest CLI binary not found". Once the dev server is running, its dashboard at [http://localhost:8288](http://localhost:8288) should list the app as synced under **Apps**.
+
+1. Open [http://localhost:3000](http://localhost:3000) and choose **Create a deck**. You need an account: if you are signed out, you are asked to sign in first and then brought back. On the form at `/new`, describe your business idea (20 to 2,000 characters) and choose **Generate pitch deck**.
 2. You are taken to the deck's page at `/decks/<id>`. It shows **Queued**, then **Generating**, and updates by itself every few seconds until the deck is ready, usually within a few minutes.
 3. A finished deck shows its title and 5 to 8 slides, each with an image. If generation fails, the page explains why and **Try again** starts a new deck from the same idea.
 
 If the Inngest dev server is not running, decks stay **Queued**. After 10 minutes the page says generation is taking longer than expected and offers **Check again**.
 
-**Deck links are public share links.** There are no accounts: anyone with a deck's link can view it, and search engines are asked not to index deck pages. The page shows only the generated deck, never the idea you typed, but don't put confidential details in your idea. Generation is limited for everyone together (3 decks at a time, 30 per hour), and excess requests wait in a queue. Set a monthly spending limit on your OpenAI project as well.
+**Accounts.** Choose **Sign in** in the header, then **Create one**, to make an account with your name, email and a password of at least 8 characters. Once signed in, the header shows your initials; open that menu to sign out. Sessions last 7 days. Password reset and email verification are not available yet. Creating or retrying a deck requires a session, which the server checks, but decks are not linked to the account that created them yet.
+
+**Deck links are public share links.** Decks are not tied to accounts yet: anyone with a deck's link can view it, and search engines are asked not to index deck pages. The page shows only the generated deck, never the idea you typed, but don't put confidential details in your idea. Generation is limited for everyone together (3 decks at a time, 30 per hour), and excess requests wait in a queue. Set a monthly spending limit on your OpenAI project as well.
 
 To query data in your own code, import the client in a Server Component, Server Action or route handler:
 

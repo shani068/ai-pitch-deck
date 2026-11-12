@@ -32,9 +32,8 @@ const EXAMPLE_IDEAS = [
  * server. The textarea is controlled, so React's automatic form reset after an action never
  * clears what the visitor typed when the server rejects it.
  *
- * Every "Create a deck" action links to `/#create`. The field is focused when the page opens
- * with that hash, and when such a link is clicked on this page (Next.js updates the hash with
- * `pushState`, which fires no `hashchange`).
+ * It is the only thing on `/new`, which every "Create a deck" action opens, so the field is
+ * focused when the form mounts.
  */
 export function IdeaForm() {
   const [state, formAction, pending] = useActionState(createDeck, initialState);
@@ -42,15 +41,7 @@ export function IdeaForm() {
   const fieldRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const focusField = () => fieldRef.current?.focus({ preventScroll: true });
-    if (window.location.hash === "#create") focusField();
-
-    function onClick(event: MouseEvent) {
-      const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
-      if (link?.getAttribute("href")?.endsWith("#create")) requestAnimationFrame(focusField);
-    }
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    fieldRef.current?.focus({ preventScroll: true });
   }, []);
 
   const error = state.status === "error" ? state.message : null;

@@ -89,7 +89,13 @@ export function ThemeMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Change theme" title="Change theme">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Change theme"
+          title="Change theme"
+          className="rounded-full"
+        >
           <current.Icon aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>

@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 import { Container } from "@/components/site/container";
+import { CREATE_DECK_HREF } from "@/components/site/nav-links";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ArrowRightIcon } from "@/src/components/icons";
@@ -19,17 +22,16 @@ export function ClosingCta() {
               Write what you are building. The deck, the review and the images follow.
             </p>
           </div>
-          {/* A plain anchor: same-page hash navigation, and the idea form focuses its field. */}
-          <a
-            href="#create"
+          <Link
+            href={CREATE_DECK_HREF}
             className={cn(
               buttonVariants({ size: "lg" }),
-              "h-11 shrink-0 bg-background px-5 text-base text-foreground hover:bg-background/90",
+              "h-12 shrink-0 rounded-full bg-background px-6 text-base font-semibold text-foreground transition-[translate,scale,background-color] duration-500 ease-apple active:duration-150 hover:-translate-y-0.5 hover:bg-background/90 active:translate-y-0 active:scale-[0.97]",
             )}
           >
             Create your deck
             <ArrowRightIcon aria-hidden="true" />
-          </a>
+          </Link>
         </div>
       </Container>
     </section>

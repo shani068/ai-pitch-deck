@@ -5,5 +5,5 @@ export const SECTION_LINKS = [
   { href: "/#example", label: "Example" },
 ] as const;
 
-/** Where every "Create a deck" action leads: the idea form in the home page hero. */
-export const CREATE_DECK_HREF = "/#create";
+/** Where every "Create a deck" action leads: the idea form, for signed-in users only. */
+export const CREATE_DECK_HREF = "/new";

@@ -3,8 +3,8 @@ import { ChevronDownIcon } from "@/src/components/icons";
 
 import { SectionHeading } from "./section-heading";
 
-// Answers must stay true to the current product. "Who can see my deck?" changes when accounts
-// arrive (owner-only decks); update it in that change.
+// Answers must stay true to the current product. "Who can see my deck?" changes again when decks
+// become owner-only (the add-my-decks change); update it there.
 const QUESTIONS = [
   {
     question: "What do I get?",
@@ -19,7 +19,7 @@ const QUESTIONS = [
   {
     question: "Who can see my deck?",
     answer:
-      "Anyone who has its link. There are no accounts yet, so don't put confidential details in your idea. Deck pages are hidden from search engines.",
+      "Anyone who has its link. You need an account to create a deck, but decks aren't private to your account yet, so don't put confidential details in your idea. Deck pages are hidden from search engines.",
   },
   {
     question: "What makes a good idea?",

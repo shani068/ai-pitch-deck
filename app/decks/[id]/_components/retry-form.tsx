@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { RefreshIcon } from "@/src/components/icons";
 
+import { CREATE_DECK_HREF } from "@/components/site/nav-links";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { retryDeck, type FormState } from "@/src/decks/actions";
@@ -22,7 +23,7 @@ export function RetryForm({ deckId }: { deckId: string }) {
           {pending ? "Starting…" : "Try again"}
         </Button>
         <Button asChild variant="outline">
-          <Link href="/">Start over</Link>
+          <Link href={CREATE_DECK_HREF}>Start over</Link>
         </Button>
       </div>
       {state.status === "error" ? (

@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 
+import { getSession } from "@/src/auth/session";
+
 import { getDeckForRetry } from "./queries";
 import { createAndStartDeck, START_FAILED_MESSAGE } from "./start-generation";
 import { DeckIdSchema, IdeaSchema } from "./validation";
@@ -13,9 +15,17 @@ import { DeckIdSchema, IdeaSchema } from "./validation";
 export type FormState = { status: "idle" } | { status: "error"; message: string };
 
 const RETRY_UNAVAILABLE_MESSAGE = "This pitch deck can't be retried. Please start over.";
+const SIGN_IN_REQUIRED_MESSAGE = "Please sign in to create a pitch deck.";
 
-/** Validates the idea, creates a PENDING deck, starts generation and opens the deck's page. */
+/**
+ * Checks the session, validates the idea, creates a PENDING deck, starts generation and opens
+ * the deck's page. Hiding the form from signed-out visitors is only UX: this check is the gate.
+ */
 export async function createDeck(_prevState: FormState, formData: FormData): Promise<FormState> {
+  if (!(await getSession())) {
+    return { status: "error", message: SIGN_IN_REQUIRED_MESSAGE };
+  }
+
   const idea = IdeaSchema.safeParse(formData.get("idea"));
   if (!idea.success) {
     const message = idea.error.issues[0]?.message ?? "Please check your business idea.";
@@ -37,6 +47,10 @@ export async function createDeck(_prevState: FormState, formData: FormData): Pro
  * idea is read on the server only.
  */
 export async function retryDeck(deckId: unknown, _prevState: FormState): Promise<FormState> {
+  if (!(await getSession())) {
+    return { status: "error", message: SIGN_IN_REQUIRED_MESSAGE };
+  }
+
   const id = DeckIdSchema.safeParse(deckId);
   if (!id.success) {
     return { status: "error", message: RETRY_UNAVAILABLE_MESSAGE };

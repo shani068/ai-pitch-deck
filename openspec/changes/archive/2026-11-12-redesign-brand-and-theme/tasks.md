@@ -64,7 +64,7 @@ Verification notes:
 
 ## 7. Integration checks
 
-- [ ] 7.1 Run `vp check`, `vp test` and `vp run build`, and confirm all three pass. Confirm that the route table shows `/` as static and `/decks/[id]` as partial prerender. Then run `rg -n "bg-gradient|bg-linear|from-|via-|transform-3d|perspective-|animate-(?!spin)" app components`, which must find nothing.
+- [x] 7.1 Run `vp check`, `vp test` and `vp run build`, and confirm all three pass. Confirm that the route table shows `/` as static and `/decks/[id]` as partial prerender. Then run `rg -n "bg-gradient|bg-linear|from-|via-|transform-3d|perspective-|animate-(?!spin)" app components`, which must find nothing.
 - [x] 7.2 Run one end-to-end deck generation in placeholder mode (`vp run dev` and the Inngest dev server) from the new hero. Verify that the deck completes and its page renders inside the new shell.
 - [ ] 7.3 **(browser)** In light and in dark, at 375, 768 and 1280 px: - no horizontal scroll; - the header stays on top while scrolling; - the mobile menu opens, closes, and its links scroll to their sections; - the theme menu works by mouse and keyboard, survives a reload without a flash, and System follows an OS change live; - "Create a deck" from a deck page lands in the focused idea field; - every button and link shows a pointer, and keyboard focus is always visible; - with reduced motion on, nothing transitions.
 
