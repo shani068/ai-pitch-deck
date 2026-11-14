@@ -1,10 +1,20 @@
 import { NonRetriableError } from "inngest";
 
-import { generatePitchDeck, PitchDeckGenerationError } from "@/src/ai/pitch-deck/service";
+import {
+  generatePitchDeck,
+  PitchDeckGenerationError,
+  type PitchDeckErrorCode,
+} from "@/src/ai/pitch-deck/service";
 import { generateSlideImage } from "@/src/ai/pitch-deck/slide-image";
 import { db } from "@/src/prisma/db";
 
 import { deckGenerate, inngest } from "../client";
+
+const NON_RETRIABLE_CODES = new Set<PitchDeckErrorCode>([
+  "INPUT_REJECTED",
+  "QUALITY_REJECTED",
+  "PROVIDER_UNAVAILABLE",
+]);
 
 const FAILED_MESSAGE = "The pitch deck could not be generated. Please try again later.";
 
@@ -26,7 +36,9 @@ async function generateContent(idea: string) {
     if (!(error instanceof PitchDeckGenerationError)) throw error;
 
     console.error("Pitch deck generation failed", error.code, error.cause);
-    if (error.code === "INPUT_REJECTED" || error.code === "QUALITY_REJECTED") {
+    // Retrying cannot fix these: a rejected idea or deck, or an OpenAI key/model/credit problem
+    // (which would otherwise burn every retry and keep the founder waiting minutes for a failure).
+    if (NON_RETRIABLE_CODES.has(error.code)) {
       throw new NonRetriableError(error.message);
     }
     throw new Error(error.message);
@@ -93,7 +105,7 @@ export const generateDeck = inngest.createFunction(
     const imageUrls: string[] = [];
     for (const [order, slide] of pitchDeck.slides.entries()) {
       const imageUrl = await step.run(`generate-slide-image-${order}`, () =>
-        generateSlideImage({ deckId, order, imagePrompt: slide.imagePrompt }),
+        generateSlideImage({ deckId, order, slide }),
       );
       imageUrls.push(imageUrl);
     }

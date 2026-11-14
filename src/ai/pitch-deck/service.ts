@@ -9,6 +9,7 @@ import {
 import { z } from "zod";
 
 import { pitchDeckAgent } from "./pitch-deck-agent";
+import { isUnrecoverableProviderError } from "./provider-errors";
 import { PitchDeckSchema, type PitchDeck } from "./schema";
 
 export const MAX_IDEA_LENGTH = 2000;
@@ -18,6 +19,7 @@ export type PitchDeckErrorCode =
   | "QUALITY_REJECTED"
   | "EVALUATION_FAILED"
   | "INVALID_OUTPUT"
+  | "PROVIDER_UNAVAILABLE"
   | "GENERATION_FAILED";
 
 /**
@@ -79,6 +81,14 @@ function toGenerationError(error: unknown): PitchDeckGenerationError {
         ? `The generated pitch deck did not pass the quality review: ${issues.join(" ")}`
         : MESSAGES.qualityRejected;
     return new PitchDeckGenerationError("QUALITY_REJECTED", message, { cause: error });
+  }
+
+  // A bad or expired key, a missing model or no credit: the same generic message (the details are
+  // operator-facing and stay in the server log), but callers should not retry.
+  if (isUnrecoverableProviderError(error)) {
+    return new PitchDeckGenerationError("PROVIDER_UNAVAILABLE", MESSAGES.generationFailed, {
+      cause: error,
+    });
   }
 
   if (error instanceof ModelBehaviorError) {
