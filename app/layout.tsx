@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { ThemeScript } from "@/components/theme/theme-script";
+import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         {children}
         <SiteFooter />
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

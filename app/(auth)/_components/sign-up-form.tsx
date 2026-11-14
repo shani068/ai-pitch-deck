@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { authClient } from "@/src/auth/client";
 import { safeNextPath } from "@/src/auth/redirect";
@@ -45,7 +46,7 @@ export function SignUpForm() {
     setErrors({});
 
     setPending(true);
-    const { error } = await authClient.signUp.email(input.data);
+    const { data: result, error } = await authClient.signUp.email(input.data);
     if (error) {
       const mapped = toAuthFormError(error);
       if (mapped.field) setErrors({ [mapped.field]: mapped.message });
@@ -55,6 +56,11 @@ export function SignUpForm() {
       return;
     }
 
+    // The Toaster lives in the root layout, so the toast stays up through the redirect. The name
+    // is rendered as text by React, never as HTML.
+    toast.success("Account created", {
+      description: result?.user.name ? `Welcome, ${result.user.name}.` : "Welcome.",
+    });
     router.push(safeNextPath(new URLSearchParams(window.location.search).get("next")));
     router.refresh();
   }

@@ -8,6 +8,10 @@
       "name": "alert-circle",
       "variant": "stroke"
     },
+    "alert-triangle": {
+      "name": "alert-triangle",
+      "variant": "stroke"
+    },
     "arrow-left": {
       "name": "arrow-left",
       "variant": "stroke"
@@ -52,6 +56,10 @@
       "name": "file-default",
       "variant": "stroke"
     },
+    "information-circle": {
+      "name": "information-circle",
+      "variant": "stroke"
+    },
     "laptop": {
       "name": "laptop",
       "variant": "stroke"
@@ -78,6 +86,10 @@
     },
     "moon": {
       "name": "moon",
+      "variant": "stroke"
+    },
+    "multiple-cross-cancel-circle": {
+      "name": "multiple-cross-cancel-circle",
       "variant": "stroke"
     },
     "multiple-cross-cancel-default": {

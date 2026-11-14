@@ -18,7 +18,7 @@ export default function SignUpPage() {
           Already have an account?{" "}
           <Link
             href="/sign-in"
-            className="rounded-sm font-medium text-foreground underline-offset-4 hover:underline"
+            className="rounded-sm font-semibold text-primary underline-offset-4 hover:underline"
           >
             Sign in
           </Link>
