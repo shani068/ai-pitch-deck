@@ -3,6 +3,11 @@ import { z } from "zod";
 export const SlideSchema = z.object({
   title: z.string().min(3).max(80),
   content: z.string().min(20).max(500),
+  /** The short text drawn onto the slide image; `content` stays the full speaker text. */
+  keyMessage: z.string().min(10).max(160),
+  /** The phrase of `keyMessage` the image marks with a highlighter. */
+  highlight: z.string().min(2).max(60),
+  /** The illustration only; the slide layout and art style are added in `slide-image-prompt.ts`. */
   imagePrompt: z.string().min(10).max(300),
 });
 
