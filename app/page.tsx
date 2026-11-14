@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { ClosingCta } from "./_components/home/closing-cta";
 import { ExampleDeck } from "./_components/home/example-deck";
 import { Facts } from "./_components/home/facts";
 import { Faq } from "./_components/home/faq";
@@ -22,7 +21,6 @@ export default function Home() {
       <Features />
       <ExampleDeck />
       <Faq />
-      <ClosingCta />
     </main>
   );
 }

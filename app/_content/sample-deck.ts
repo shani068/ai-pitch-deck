@@ -51,3 +51,14 @@ export const SAMPLE_DECK: SampleDeck = {
     },
   ],
 };
+
+/** A short label for each sample slide, in order: the part of the investor story it tells. */
+export const SAMPLE_SLIDE_LABELS = [
+  "Problem",
+  "Solution",
+  "Market",
+  "Product",
+  "Revenue",
+  "Launch",
+  "Ask",
+] as const;

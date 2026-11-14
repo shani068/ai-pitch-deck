@@ -92,6 +92,10 @@
       "name": "photo-image-default",
       "variant": "stroke"
     },
+    "plus-default": {
+      "name": "plus-default",
+      "variant": "stroke"
+    },
     "refresh": {
       "name": "refresh",
       "variant": "stroke"
