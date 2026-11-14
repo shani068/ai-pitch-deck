@@ -5,8 +5,11 @@ import { z } from "zod";
 import { uploadImage } from "@/lib/imageKit";
 import { generateImage } from "@/lib/openai";
 
-// Matches the 1024x1024 size of generated images, so both modes have the same aspect ratio.
-const PLACEHOLDER_SIZE = 1024;
+import { buildSlideImagePrompt, type SlideImageText } from "./slide-image-prompt";
+
+// Matches the 1536x1024 size of generated slides, so both modes have the same aspect ratio.
+const PLACEHOLDER_WIDTH = 1536;
+const PLACEHOLDER_HEIGHT = 1024;
 
 const PlaceholderFlagSchema = z
   .stringbool({ truthy: ["true"], falsy: ["false"], case: "sensitive" })
@@ -28,28 +31,29 @@ export function placeholderImagesEnabled(): boolean {
 /** A Picsum image seeded by deck and position, so the same slide always gets the same image. */
 export function placeholderImageUrl(deckId: string, order: number): string {
   const seed = encodeURIComponent(`${deckId}-${order}`);
-  return `https://picsum.photos/seed/${seed}/${PLACEHOLDER_SIZE}/${PLACEHOLDER_SIZE}`;
+  return `https://picsum.photos/seed/${seed}/${PLACEHOLDER_WIDTH}/${PLACEHOLDER_HEIGHT}`;
 }
 
 type SlideImageInput = {
   deckId: string;
   order: number;
-  imagePrompt: string;
+  slide: SlideImageText;
 };
 
 /**
- * Returns an image URL for one slide using the configured mode. Generated images are stored at a
- * path derived from the deck and position, so a retried upload replaces the earlier file.
+ * Returns an image URL for one slide using the configured mode. Generated images are the whole
+ * slide (title, key message and illustration) and are stored at a path derived from the deck and
+ * position, so a retried upload replaces the earlier file.
  */
 export async function generateSlideImage({
   deckId,
   order,
-  imagePrompt,
+  slide,
 }: SlideImageInput): Promise<string> {
   if (placeholderImagesEnabled()) {
     return placeholderImageUrl(deckId, order);
   }
 
-  const image = await generateImage(imagePrompt);
+  const image = await generateImage(buildSlideImagePrompt(slide, order));
   return uploadImage(image, { folder: `/decks/${deckId}`, fileName: `slide-${order}.png` });
 }

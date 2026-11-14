@@ -2,8 +2,12 @@ import "server-only";
 
 import OpenAI from "openai";
 
-const IMAGE_MODEL = "gpt-image-1-mini";
-const IMAGE_SIZE = "1024x1024";
+// Slides are drawn with their words on them, so the model must render text reliably:
+// gpt-image-2 spells it correctly and follows the whiteboard style (grid, colour accents) that
+// gpt-image-1-mini drops. Landscape, because the image is the whole slide.
+const IMAGE_MODEL = "gpt-image-2";
+const IMAGE_SIZE = "1536x1024";
+const IMAGE_QUALITY = "medium";
 
 let openaiClient: OpenAI | null = null;
 
@@ -29,6 +33,7 @@ export async function generateImage(prompt: string): Promise<Buffer> {
     model: IMAGE_MODEL,
     prompt,
     size: IMAGE_SIZE,
+    quality: IMAGE_QUALITY,
     n: 1,
   });
 

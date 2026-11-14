@@ -11,8 +11,9 @@ import { getDeckForView, type DeckForView } from "@/src/decks/queries";
 import { DeckIdSchema } from "@/src/decks/validation";
 
 import { CheckAgainButton, DeckStatusPoller } from "./deck-status-poller";
+import { DeckPresenter } from "./deck-presenter";
 import { RetryForm } from "./retry-form";
-import { SlideCard } from "./slide-card";
+import { allowedImageUrl, isDrawnSlideImage } from "./slide-image-url";
 
 const GENERIC_FAILURE_MESSAGE = "The pitch deck could not be generated. Please try again.";
 
@@ -68,15 +69,18 @@ export async function DeckView({ params }: { params: Promise<{ id: string }> }) 
 
 function DeckBody({ deck, stale }: { deck: DeckForView; stale: boolean }) {
   if (deck.status === "COMPLETE") {
-    return (
-      <ol className="flex flex-col gap-6" aria-label="Slides">
-        {deck.slides.map((slide, index) => (
-          <li key={slide.order}>
-            <SlideCard slide={slide} index={index} />
-          </li>
-        ))}
-      </ol>
-    );
+    // Only what a slide shows is sent to the browser, with image URLs checked here on the server.
+    const slides = deck.slides.map((slide) => {
+      const imageUrl = allowedImageUrl(slide.imageUrl);
+      return {
+        title: slide.title,
+        content: slide.content,
+        imagePrompt: slide.imagePrompt,
+        imageUrl,
+        imageIsSlide: imageUrl !== null && isDrawnSlideImage(imageUrl),
+      };
+    });
+    return <DeckPresenter deckTitle={deck.title || "Pitch deck"} slides={slides} />;
   }
 
   if (deck.status === "FAILED") {
@@ -110,22 +114,21 @@ function DeckBody({ deck, stale }: { deck: DeckForView; stale: boolean }) {
     );
   }
 
+  // The presenter's shape: toolbar, one slide, progress bar, notes and thumbnail strip.
   return (
-    <ol className="flex flex-col gap-6" aria-hidden="true">
-      {[0, 1, 2].map((index) => (
-        <li
-          key={index}
-          className="grid overflow-hidden rounded-xl ring-1 ring-foreground/10 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
-        >
-          <Skeleton className="aspect-square w-full rounded-none" />
-          <div className="flex flex-col justify-center gap-3 p-5 sm:p-8">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-7 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-          </div>
-        </li>
-      ))}
-    </ol>
+    <div className="flex flex-col gap-4" aria-hidden="true">
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-5 w-16" />
+        <Skeleton className="h-9 w-40" />
+      </div>
+      <Skeleton className="aspect-[3/2] w-full rounded-2xl" />
+      <Skeleton className="h-1.5 w-full rounded-full" />
+      <Skeleton className="h-11 w-full rounded-xl" />
+      <div className="flex gap-3 overflow-hidden px-1 pt-1">
+        {[0, 1, 2, 3, 4].map((index) => (
+          <Skeleton key={index} className="aspect-[5/4] w-36 shrink-0 rounded-xl sm:w-44" />
+        ))}
+      </div>
+    </div>
   );
 }

@@ -32,6 +32,10 @@
       "name": "chevron-down",
       "variant": "stroke"
     },
+    "chevron-left": {
+      "name": "chevron-left",
+      "variant": "stroke"
+    },
     "chevron-right": {
       "name": "chevron-right",
       "variant": "stroke"
@@ -102,6 +106,10 @@
     },
     "photo-image-default": {
       "name": "photo-image-default",
+      "variant": "stroke"
+    },
+    "play-circle": {
+      "name": "play-circle",
       "variant": "stroke"
     },
     "plus-default": {
