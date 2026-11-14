@@ -5,6 +5,7 @@ import { safeNextPath } from "./redirect";
 describe("safeNextPath", () => {
   it("returns an allowlisted path", () => {
     expect(safeNextPath("/new")).toBe("/new");
+    expect(safeNextPath("/decks")).toBe("/decks");
   });
 
   it.each([

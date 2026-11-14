@@ -16,6 +16,12 @@ model Deck {
   createdAt    DateTime   @default(now())
   updatedAt    temporal.UpdatedAt
   slides       Slide[]
+  // The signed-in creator. Null for decks made before decks had owners; those stay reachable
+  // by link but appear in no one's deck list.
+  userId       String?
+  user         User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model Slide {
