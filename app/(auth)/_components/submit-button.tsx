@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
-/** The design's outlined, full-width submit button, with a pending state. */
+/** Full-width submit in the site's primary dark style (as the hero's "Create a deck"), with a pending state. */
 export function SubmitButton({ pending, children }: { pending: boolean; children: string }) {
   return (
     <Button
       type="submit"
-      variant="outline"
       disabled={pending}
       aria-busy={pending || undefined}
-      className="mt-1 h-12 w-full rounded-xl bg-card text-base font-medium dark:bg-input/20"
+      className="mt-2 h-12 w-full rounded-xl bg-foreground text-base font-semibold text-background shadow-lg shadow-foreground/15 transition-[translate,scale,background-color,box-shadow] duration-500 ease-apple hover:-translate-y-0.5 hover:bg-foreground/90 hover:shadow-xl hover:shadow-foreground/20 active:translate-y-0 active:scale-[0.98] active:duration-150"
     >
       {pending ? <Spinner aria-hidden="true" /> : null}
       {children}
