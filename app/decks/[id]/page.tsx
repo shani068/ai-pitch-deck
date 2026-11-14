@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function DeckPage({ params }: PageProps<"/decks/[id]">) {
   return (
     <main className="flex-1">
-      <Container className="flex max-w-5xl flex-col gap-8 py-10 sm:py-14">
+      <Container className="flex max-w-6xl flex-col gap-8 py-10 sm:py-14">
         <Suspense fallback={<DeckSkeleton />}>
           <DeckView params={params} />
         </Suspense>
