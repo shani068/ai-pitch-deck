@@ -22,7 +22,8 @@ const SIGN_IN_REQUIRED_MESSAGE = "Please sign in to create a pitch deck.";
  * the deck's page. Hiding the form from signed-out visitors is only UX: this check is the gate.
  */
 export async function createDeck(_prevState: FormState, formData: FormData): Promise<FormState> {
-  if (!(await getSession())) {
+  const session = await getSession();
+  if (!session) {
     return { status: "error", message: SIGN_IN_REQUIRED_MESSAGE };
   }
 
@@ -32,7 +33,7 @@ export async function createDeck(_prevState: FormState, formData: FormData): Pro
     return { status: "error", message };
   }
 
-  const started = await createAndStartDeck(idea.data);
+  const started = await createAndStartDeck(idea.data, session.user.id);
   if (!started.ok) {
     return { status: "error", message: started.message };
   }
@@ -43,11 +44,13 @@ export async function createDeck(_prevState: FormState, formData: FormData): Pro
 
 /**
  * Creates a new deck from a FAILED deck's stored idea and opens it. The failed deck is left
- * unchanged. `deckId` is bound on the client and can be forged, so it is validated here, and the
- * idea is read on the server only.
+ * unchanged. `deckId` is bound on the client and can be forged, so it is validated here, the
+ * idea is read on the server only, and only the deck's owner may retry it: a retry copies the
+ * idea into a new deck, so anyone else could otherwise generate from someone else's idea.
  */
 export async function retryDeck(deckId: unknown, _prevState: FormState): Promise<FormState> {
-  if (!(await getSession())) {
+  const session = await getSession();
+  if (!session) {
     return { status: "error", message: SIGN_IN_REQUIRED_MESSAGE };
   }
 
@@ -64,11 +67,11 @@ export async function retryDeck(deckId: unknown, _prevState: FormState): Promise
     return { status: "error", message: START_FAILED_MESSAGE };
   }
 
-  if (!deck || deck.status !== "FAILED") {
+  if (!deck || deck.status !== "FAILED" || deck.userId !== session.user.id) {
     return { status: "error", message: RETRY_UNAVAILABLE_MESSAGE };
   }
 
-  const started = await createAndStartDeck(deck.idea);
+  const started = await createAndStartDeck(deck.idea, session.user.id);
   if (!started.ok) {
     return { status: "error", message: started.message };
   }

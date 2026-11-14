@@ -20,6 +20,10 @@
       "name": "arrow-right",
       "variant": "stroke"
     },
+    "bulb-on": {
+      "name": "bulb-on",
+      "variant": "stroke"
+    },
     "burger-menu-three": {
       "name": "burger-menu-three",
       "variant": "stroke"

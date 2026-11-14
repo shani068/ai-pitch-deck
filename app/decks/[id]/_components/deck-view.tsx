@@ -3,7 +3,6 @@ import { connection } from "next/server";
 import { AlertCircleIcon, ClockIcon } from "@/src/components/icons";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { currentPollPlan, type DeckStatus } from "@/src/decks/polling";
@@ -13,19 +12,10 @@ import { DeckIdSchema } from "@/src/decks/validation";
 import { CheckAgainButton, DeckStatusPoller } from "./deck-status-poller";
 import { DeckPresenter } from "./deck-presenter";
 import { RetryForm } from "./retry-form";
-import { allowedImageUrl, isDrawnSlideImage } from "./slide-image-url";
+import { DeckStatusBadge } from "../../_components/deck-status-badge";
+import { allowedImageUrl, isDrawnSlideImage } from "../../_components/slide-image-url";
 
 const GENERIC_FAILURE_MESSAGE = "The pitch deck could not be generated. Please try again.";
-
-const BADGES: Record<
-  DeckStatus,
-  { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
-> = {
-  PENDING: { label: "Queued", variant: "secondary" },
-  GENERATING: { label: "Generating", variant: "default" },
-  COMPLETE: { label: "Ready", variant: "outline" },
-  FAILED: { label: "Failed", variant: "destructive" },
-};
 
 const STATUS_TEXT: Record<DeckStatus, string> = {
   PENDING: "Your pitch deck is queued and will start generating shortly.",
@@ -50,7 +40,7 @@ export async function DeckView({ params }: { params: Promise<{ id: string }> }) 
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <Badge variant={BADGES[deck.status].variant}>{BADGES[deck.status].label}</Badge>
+        <DeckStatusBadge status={deck.status} />
         <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
           {deck.status === "COMPLETE" && deck.title ? deck.title : "Your pitch deck"}
         </h1>
@@ -114,20 +104,27 @@ function DeckBody({ deck, stale }: { deck: DeckForView; stale: boolean }) {
     );
   }
 
-  // The presenter's shape: toolbar, one slide, progress bar, notes and thumbnail strip.
+  // The presenter's shape: toolbar, then the slide column beside (or above) the slide list.
   return (
     <div className="flex flex-col gap-4" aria-hidden="true">
       <div className="flex items-center justify-between gap-3">
         <Skeleton className="h-5 w-16" />
         <Skeleton className="h-9 w-40" />
       </div>
-      <Skeleton className="aspect-[3/2] w-full rounded-2xl" />
-      <Skeleton className="h-1.5 w-full rounded-full" />
-      <Skeleton className="h-11 w-full rounded-xl" />
-      <div className="flex gap-3 overflow-hidden px-1 pt-1">
-        {[0, 1, 2, 3, 4].map((index) => (
-          <Skeleton key={index} className="aspect-[5/4] w-36 shrink-0 rounded-xl sm:w-44" />
-        ))}
+      <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        <div className="flex flex-col gap-4">
+          <Skeleton className="aspect-[3/2] w-full rounded-2xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+        </div>
+        <div className="flex flex-col gap-1.5 lg:order-first">
+          {[0, 1, 2, 3, 4].map((index) => (
+            <div key={index} className="flex items-center gap-3 p-1.5">
+              <Skeleton className="h-3 w-5" />
+              <Skeleton className="aspect-[3/2] w-24 shrink-0 rounded-md sm:w-28" />
+              <Skeleton className="h-4 flex-1" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

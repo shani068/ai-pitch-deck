@@ -7,3 +7,6 @@ export const SECTION_LINKS = [
 
 /** Where every "Create a deck" action leads: the idea form, for signed-in users only. */
 export const CREATE_DECK_HREF = "/new";
+
+/** The signed-in user's own decks. */
+export const MY_DECKS_HREF = "/decks";

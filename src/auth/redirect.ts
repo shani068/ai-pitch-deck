@@ -1,5 +1,5 @@
 /** Pages that may send a visitor to sign in and expect them back afterwards. */
-const RETURN_PATHS = new Set(["/new"]);
+const RETURN_PATHS = new Set(["/new", "/decks"]);
 
 /**
  * Where to go after signing in or up. `next` comes from the URL, so anyone can set it: only an

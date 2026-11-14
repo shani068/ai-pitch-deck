@@ -292,6 +292,13 @@
                     "precision": 3
                   }
                 }
+              },
+              "userId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
@@ -307,6 +314,22 @@
                 },
                 "to": {
                   "model": "Slide",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
                   "namespace": "public"
                 }
               }
@@ -333,6 +356,9 @@
                 },
                 "updatedAt": {
                   "column": "updatedAt"
+                },
+                "userId": {
+                  "column": "userId"
                 }
               },
               "namespaceId": "public",
@@ -857,10 +883,54 @@
                   "typeParams": {
                     "precision": 3
                   }
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "Deck_userId_idx_a489d58a"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Deck"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId",
+                    "createdAt"
+                  ],
+                  "name": "Deck_userId_createdAt_idx_f726f04a",
+                  "prefix": "Deck_userId_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "Deck_userId_idx_a489d58a",
+                  "prefix": "Deck_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1383,7 +1453,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "cb251e3b30e8c1935553056a765592084bb1c04753d35b0927ae6734b121319f"
+    "storageHash": "e687ae1d2739b01e21b416261234f5c29f8aa746ebcdd433f86b2b28cd5765ca"
   },
   "execution": {
     "executionHash": "ed08a1d50a484b91eb9d4e4f9dd48a83ec1c0255b744abbffc5391c4c9e54e3e",

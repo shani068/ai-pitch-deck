@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'cb251e3b30e8c1935553056a765592084bb1c04753d35b0927ae6734b121319f'>;
+  StorageHashBase<'e687ae1d2739b01e21b416261234f5c29f8aa746ebcdd433f86b2b28cd5765ca'>;
 export type ExecutionHash =
   ExecutionHashBase<'ed08a1d50a484b91eb9d4e4f9dd48a83ec1c0255b744abbffc5391c4c9e54e3e'>;
 export type ProfileHash =
@@ -354,8 +354,10 @@ export namespace Models {
     status: FieldOutputTypes['public']['Deck']['status'];
     title: FieldOutputTypes['public']['Deck']['title'];
     updatedAt: FieldOutputTypes['public']['Deck']['updatedAt'];
+    userId: FieldOutputTypes['public']['Deck']['userId'];
     slides: public_Slide[];
-    readonly [RelationKeys]?: 'slides';
+    user: public_User | null;
+    readonly [RelationKeys]?: 'slides' | 'user';
   };
   export type public_RateLimit = {
     count: FieldOutputTypes['public']['RateLimit']['count'];
@@ -602,11 +604,43 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly precision: 3 };
                   readonly many: false;
                 };
+                readonly userId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Deck_userId_createdAt_idx_f726f04a';
+                  readonly prefix: 'Deck_userId_createdAt_idx';
+                  readonly columns: readonly ['userId', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Deck_userId_idx_a489d58a';
+                  readonly prefix: 'Deck_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Deck';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly rateLimit: {
               columns: {
@@ -1085,6 +1119,10 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly precision: 3 };
                 };
               };
+              readonly userId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
             };
             readonly relations: {
               readonly slides: {
@@ -1096,6 +1134,15 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['deckId'];
+                };
+              };
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
             };
@@ -1110,6 +1157,7 @@ type ContractBase = Omit<
                 readonly status: { readonly column: 'status' };
                 readonly title: { readonly column: 'title' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly userId: { readonly column: 'userId' };
               };
             };
           };

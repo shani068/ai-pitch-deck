@@ -13,7 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/src/auth/client";
-import { LogOutRightIcon } from "@/src/components/icons";
+import { LayerThreeIcon, LogOutRightIcon } from "@/src/components/icons";
+
+import { MY_DECKS_HREF } from "./nav-links";
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -65,6 +67,13 @@ export function AccountMenu() {
                 {session.user.email}
               </span>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild className="py-2">
+              <Link href={MY_DECKS_HREF}>
+                <LayerThreeIcon aria-hidden="true" />
+                My decks
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => void signOut()} className="py-2">
               <LogOutRightIcon aria-hidden="true" />

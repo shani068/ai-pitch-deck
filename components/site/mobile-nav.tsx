@@ -14,7 +14,7 @@ import { authClient } from "@/src/auth/client";
 import { BurgerMenuThreeIcon, LogOutRightIcon } from "@/src/components/icons";
 
 import { useSignOut } from "./account-menu";
-import { CREATE_DECK_HREF, SECTION_LINKS } from "./nav-links";
+import { CREATE_DECK_HREF, MY_DECKS_HREF, SECTION_LINKS } from "./nav-links";
 
 /**
  * Section links, "Create a deck" (hidden from the header on phones) and the account action,
@@ -47,6 +47,11 @@ export function MobileNav() {
           <Link href={CREATE_DECK_HREF}>Create a deck</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        {session ? (
+          <DropdownMenuItem asChild className="py-2">
+            <Link href={MY_DECKS_HREF}>My decks</Link>
+          </DropdownMenuItem>
+        ) : null}
         {session ? (
           <DropdownMenuItem onSelect={() => void signOut()} className="py-2">
             <LogOutRightIcon aria-hidden="true" />
