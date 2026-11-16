@@ -1,157 +1,250 @@
 # AI Pitch Deck
 
-## Overview
+Describe a startup idea in a few sentences and get back a structured, investor-ready pitch deck:
+5 to 8 slides written by an AI agent, checked by an independent AI reviewer, and drawn as
+whiteboard-style slide images, ready to present in the browser.
 
-**What:** AI Pitch Deck is a Next.js web application for creating pitch decks with AI assistance. This repository is the project's foundation: the app shell, design system and a type-safe PostgreSQL data layer. The pitch deck features are built on top of it.
+## Contents
 
-**Why:** Putting together a clear, convincing pitch deck takes a lot of time. This project aims to speed that up with AI. It starts from a solid, secure base so features can be added quickly without reworking the core.
-
-**How:** The app uses the Next.js App Router with React Server Components. Data lives in a Neon PostgreSQL database and is accessed through Prisma ORM 8:
-
-```
-src/prisma/contract.prisma  --(prisma contract emit)-->  contract.json + contract.d.ts
-         |                                                       |
-         |  prisma db init / migrations                          v
-         v                                       src/prisma/db.ts (server-only client)
-   Neon PostgreSQL  <-----------------------------  Server Components (db.orm.public.User ...)
-```
-
-1. The data model is written once in `src/prisma/contract.prisma`, the single source of truth.
-2. `prisma contract emit` generates `contract.json` and its TypeScript types. Every production build does this first.
-3. Server Components query through the typed client in `src/prisma/db.ts`. It can only be imported on the server, so database code and credentials never reach the browser.
-4. Pages are partially prerendered. The static parts are built ahead of time, and data is streamed in at request time inside `<Suspense>`.
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Commands](#commands)
+- [Database](#database)
+- [Security and privacy](#security-and-privacy)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## Features
 
-- Next.js 16 App Router with Cache Components (Partial Prerendering) and Turbopack
-- Type-safe database access with Prisma ORM 8 on Neon PostgreSQL
-- Server-only database client: importing it from client code fails the build
-- Contract-first data model; production builds regenerate the contract artefacts first
-- Shared design system: semantic Tailwind CSS v4 tokens ("Ink and Signal" palette), shadcn/ui, Outfit headings with Geist body text, Pikaicons, and a Light / Dark / System theme menu that defaults to the OS
-- Security headers including a Content Security Policy (`next.config.ts`)
-- Spec-driven planning with OpenSpec (`openspec/specs/`)
+**Deck generation**
 
-## Tech Stack
+- One paragraph in (20 to 2,000 characters), a complete deck out: problem, solution, market,
+  business model and the ask.
+- A generator agent writes the deck as structured output, validated with Zod (5 to 8 slides, each
+  with a title, content, key message, highlight and image prompt).
+- Guardrails on both sides: an input guardrail rejects ideas too short to build on before any
+  model call, and an output guardrail runs an independent reviewer agent that scores the deck
+  against a rubric and blocks it unless it is approved.
+- Every slide is drawn as a whiteboard-style image (title, key message and illustration in one
+  picture), or a placeholder image in development.
 
-| Area         | Technology                                               |
-| ------------ | -------------------------------------------------------- |
-| Framework    | Next.js 16 (App Router, Turbopack), React 19             |
-| Language     | TypeScript 5.9                                           |
-| Styling / UI | Tailwind CSS v4, shadcn/ui (Radix), Pikaicons            |
-| Validation   | Zod v4                                                   |
-| Database     | Neon PostgreSQL                                          |
-| ORM          | Prisma ORM 8 (`@prisma/orm-postgres`, release candidate) |
-| Toolchain    | Vite+ (`vp`) with Bun 1.4 as the package manager         |
-| Planning     | OpenSpec                                                 |
+**Background processing**
 
-## Project Structure
+- Generation runs as an Inngest function with one durable step per stage: load the deck,
+  generate the content, draw each slide image, save the deck.
+- Each step retries on its own; unrecoverable errors (rejected ideas, invalid API keys) fail fast.
+- Concurrency (3 decks at a time) and throttling (30 decks per hour) keep costs bounded.
+
+**Presenting**
+
+- A slide workspace: the current slide on a canvas, a thumbnail rail (a filmstrip on small
+  screens), speaker notes and a toolbar.
+- Keyboard navigation (arrow keys, Page Up/Down, Home/End) and native touch swiping.
+- Full-screen **Present** mode with a **Spotlight** (press `S`) that dims everything but the
+  area under the pointer.
+- The deck page shows **Queued** and **Generating** while it works, refreshes itself, and offers
+  **Try again** if generation fails.
+
+**Accounts**
+
+- Email and password accounts with Better Auth (sessions last 7 days).
+- **My decks** lists every deck you have created, newest first.
+- A clean, minimal interface with Light, Dark and System themes.
+
+## How it works
+
+```
+ /new (idea form)
+      │  Server Action: check session, validate with Zod, create a PENDING deck
+      ▼
+ Inngest event "deck/generate" ──▶ generate-deck function
+                                     │
+                                     ├─ load-deck, mark-generating
+                                     ├─ generate-content
+                                     │     input guardrail ─▶ generator agent (gpt-5.5)
+                                     │     ─▶ structured output (Zod) ─▶ output guardrail:
+                                     │        reviewer agent (gpt-5.4-mini) approves or blocks
+                                     ├─ generate-slide-image-1 … n   (gpt-image-2 → ImageKit)
+                                     └─ save-deck  ──▶  PostgreSQL (Neon)
+                                                              │
+ /decks/<id> polls until COMPLETE, then presents the slides ◀─┘
+```
+
+1. A signed-in user submits an idea at `/new`. The Server Action validates it, stores a `PENDING`
+   deck owned by that user and sends an Inngest event.
+2. The `generate-deck` function runs the pitch deck agent through the OpenAI Agents SDK. The
+   agent's output must match the deck schema, and the reviewer agent must approve it.
+3. Each slide image is generated in its own step and uploaded to ImageKit, so a failed image
+   retries alone.
+4. The deck page at `/decks/<id>` streams in at request time and refreshes until the deck is
+   `COMPLETE` or `FAILED`.
+
+## Tech stack
+
+| Area            | Technology                                                               |
+| --------------- | ------------------------------------------------------------------------ |
+| Framework       | Next.js 16 (App Router, Cache Components, Turbopack), React 19           |
+| Language        | TypeScript 5                                                             |
+| AI              | OpenAI Agents SDK (`@openai/agents`): structured outputs and guardrails  |
+| Models          | `gpt-5.5` (generator), `gpt-5.4-mini` (reviewer), `gpt-image-2` (slides) |
+| Validation      | Zod v4                                                                   |
+| Background jobs | Inngest                                                                  |
+| Database        | PostgreSQL on Neon, through Prisma ORM 8 (`@prisma/orm-postgres`, RC)    |
+| Auth            | Better Auth (email and password)                                         |
+| Image hosting   | ImageKit                                                                 |
+| UI              | Tailwind CSS v4, shadcn/ui (Radix), Pikaicons, Inter                     |
+| Toolchain       | Vite+ (`vp`): Bun package manager, Oxlint, Oxfmt, Vitest                 |
+| Planning        | OpenSpec                                                                 |
+
+## Project structure
 
 ```
 .
-├── app/                      Next.js App Router (pages, layout, global styles)
-│   ├── _components/          Page-level components (e.g. idea-form.tsx)
-│   ├── (auth)/               Sign-in and sign-up pages (/sign-in, /sign-up)
-│   ├── api/auth/[...all]/    Better Auth endpoints (/api/auth/*)
-│   ├── new/                  Idea form for signed-in users (/new)
-│   └── decks/[id]/           Public deck page (status, slides, retry)
-├── components/ui/            shadcn/ui components (generated with `vp dlx shadcn@latest add`)
-├── lib/                      Shared utilities (cn helper)
-├── src/auth/                 Better Auth server instance, browser client, validation and errors
-├── src/decks/                Deck Server Actions, queries and validation
-├── src/ai/pitch-deck/        Pitch deck agent, guardrails and generation service
-├── inngest/                  Inngest client and the background generate-deck function
-├── src/prisma/
-│   ├── contract.prisma       Data model (source of truth)
-│   ├── contract.json/.d.ts   Generated by `prisma contract emit` — do not edit
-│   ├── connection-url.ts     Resolves the Neon direct connection URL
-│   └── db.ts                 Server-only Prisma client used by the app
-├── migrations/               Prisma contract snapshots and refs — commit this
-├── openspec/                 Specs and archived changes
-├── public/                   Static assets
-├── prisma.config.ts          Prisma CLI configuration
-├── next.config.ts            Next.js config (security headers, Cache Components)
-├── proxy.ts                  Cookie-only redirects for /new, /sign-in and /sign-up (convenience only)
-└── .env.example              Template for required environment variables
+├── app/                         Next.js App Router
+│   ├── page.tsx                 Home page
+│   ├── (auth)/                  /sign-in and /sign-up
+│   ├── new/                     Idea form (/new), signed-in users only
+│   ├── decks/                   My decks (/decks), signed-in users only
+│   │   └── [id]/                Deck page: status, presenter, retry (/decks/<id>)
+│   └── api/
+│       ├── auth/[...all]/       Better Auth endpoints
+│       └── inngest/             Inngest endpoint
+├── components/
+│   ├── ui/                      shadcn/ui components
+│   ├── site/                    Header, footer, navigation
+│   ├── brand/                   Text wordmark
+│   ├── theme/                   Theme script and Light / Dark / System menu
+│   └── stageshow/               Vendored Stageshow kit (product preview on /new)
+├── inngest/                     Inngest client and the generate-deck function
+├── lib/                         OpenAI and ImageKit clients, utilities
+├── src/
+│   ├── ai/pitch-deck/           Generator and reviewer agents, schema, guardrails, slide images
+│   ├── auth/                    Better Auth server and client, session, validation
+│   ├── decks/                   Server Actions, queries, validation, polling
+│   ├── prisma/                  Data contract (source of truth) and server-only client
+│   └── components/icons/        Generated Pikaicons components (do not edit)
+├── migrations/                  Prisma contract snapshots and refs (commit these)
+├── openspec/                    Specs and archived changes
+├── next.config.ts               Security headers, CSP, image hosts
+├── proxy.ts                     Cookie-based redirects for signed-in pages (convenience only)
+└── .env.example                 Environment variable template
 ```
 
-## Prerequisites
+## Getting started
 
-- **Node.js** 22.18+ (22.x), 24.11+ (24.x) or 26+, as required by Prisma ORM 8
-- **Vite+ CLI (`vp`)**: see the [Vite+ guide](https://viteplus.dev/guide/). It manages packages with Bun.
-- **A Neon PostgreSQL database** (PostgreSQL 15 or newer): create one free at [neon.tech](https://neon.tech)
+### Prerequisites
 
-## Installation & Setup
+- **Node.js** 22.18+, 24.11+ or 26+ (required by Prisma ORM 8)
+- **Vite+ CLI (`vp`)**: see the [Vite+ guide](https://viteplus.dev/guide/)
+- **A Neon PostgreSQL database** (PostgreSQL 15+): free at [neon.tech](https://neon.tech)
+- **An OpenAI API key**, and an **ImageKit** account if you want generated slide images
+- **The Inngest CLI** for local background jobs (see step 3 below)
+
+### 1. Install and configure
 
 ```bash
 git clone <repository-url>
 cd ai_pitch_deck
 vp install                  # installs dependencies and syncs the Prisma agent skills
-cp .env.example .env        # then fill in your Neon connection string
-vp run contract:emit        # generates the Prisma contract artefacts
-vp exec prisma db init      # creates the tables in your Neon database
-vp run dev                  # http://localhost:3000
+cp .env.example .env        # then fill in the values (see Environment variables)
 ```
 
-## Environment Variables
+### 2. Create the database
 
-Set these in `.env`, which is git-ignored and never committed. `.env.example` is the template.
+```bash
+vp run contract:emit        # generates the Prisma contract artefacts
+vp exec prisma db init      # creates the tables in your Neon database
+```
 
-| Variable             | Required | Description                                                                                                    |
-| -------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`       | Yes      | Neon connection string. It can be the pooled (`-pooler`) or direct URL.                                        |
-| `DIRECT_URL`         | No       | Explicit direct (unpooled) Neon URL. If set, it overrides the URL derived from `DATABASE_URL`.                 |
-| `BETTER_AUTH_SECRET` | Yes      | Signs and encrypts session cookies. At least 32 random characters: `openssl rand -base64 32`. Never commit it. |
-| `BETTER_AUTH_URL`    | Yes      | The app's base URL, such as `http://localhost:3000`. Better Auth trusts this origin.                           |
+### 3. Run the app and the Inngest dev server
 
-> **Why direct connections?** Prisma ORM 8 sends session settings that Neon's PgBouncer pooler rejects. So both the app and the Prisma CLI connect to Neon's **direct** endpoint, and `-pooler` is stripped from the host automatically (`src/prisma/connection-url.ts`). Connection pooling happens inside the server process.
-
-## Development Commands
-
-The app runs on Next.js, so use `vp run <script>` for `package.json` scripts. `vp dev` and `vp build` are Vite built-ins and don't start this app.
-
-| Task                              | Command                            |
-| --------------------------------- | ---------------------------------- |
-| Start the dev server              | `vp run dev`                       |
-| Production build (emits contract) | `vp run build`                     |
-| Serve the production build        | `vp run start`                     |
-| Regenerate the Prisma contract    | `vp run contract:emit`             |
-| Format, lint and type-check       | `vp check` (`vp check --fix`)      |
-| Type-check only                   | `vp exec tsc --noEmit`             |
-| Add / remove a dependency         | `vp add <pkg>` / `vp remove <pkg>` |
-
-> **Known issue:** `vp check`, `vp lint` and `vp fmt` currently fail on Node 26 with `Detected cycle while resolving name 'configDefaults' in 'vite-plus'`, a vite-plus 1.4.0 bug. Use `vp exec tsc --noEmit` for type-checking until it's fixed.
-
-## Database Setup
-
-1. **Create the tables** in a new, empty database: `vp exec prisma db init`. Running it again is safe and changes nothing.
-2. **Check for drift:** `vp exec prisma db verify` confirms the database matches the contract.
-3. **Inspect the schema:** `vp exec prisma db schema`.
-4. **Change the data model:** edit `src/prisma/contract.prisma`, then run `vp run contract:emit`. For a development database, apply the change with `vp exec prisma db update`. For a database whose history matters, plan and apply a migration with `vp exec prisma migration plan --name <change>` and `vp exec prisma db migrate`.
-
-Never reset or drop a database to fix a migration problem. The contract holds the `Deck` and `Slide` models plus Better Auth's tables (`user`, `session`, `account`, `verification`, `rateLimit`). Better Auth reads and writes those by name, so keep their fields exactly as declared, and do not use Better Auth's own `migrate` command.
-
-## Usage
-
-Decks are generated in the background by Inngest, so run two processes. `.env` needs `OPENAI_API_KEY` and `INNGEST_DEV=1`. Slide images are Picsum placeholders unless `USE_PLACEHOLDER_IMAGES="false"` (see `.env.example`).
+Generation runs in the background, so start two processes. `.env` needs `INNGEST_DEV=1`.
 
 ```bash
 vp run dev                                         # http://localhost:3000
 inngest dev -u http://localhost:3000/api/inngest   # http://localhost:8288
 ```
 
-The `inngest` command is the Inngest CLI binary. Download it for your platform from the [Inngest releases](https://github.com/inngest/inngest/releases) page (`inngest.exe` on Windows) and put it on your `PATH`. `vp dlx inngest-cli@latest` does not work: `vp dlx` skips install scripts, and the `inngest-cli` package downloads its binary in one, so it exits with "Inngest CLI binary not found". Once the dev server is running, its dashboard at [http://localhost:8288](http://localhost:8288) should list the app as synced under **Apps**.
+Download the `inngest` binary for your platform from the
+[Inngest releases](https://github.com/inngest/inngest/releases) page (`inngest.exe` on Windows) and
+put it on your `PATH`. `vp dlx inngest-cli@latest` does not work: `vp dlx` skips install scripts,
+and the `inngest-cli` package downloads its binary in one. The Inngest dashboard at
+[localhost:8288](http://localhost:8288) should list the app as synced under **Apps**.
 
-1. Open [http://localhost:3000](http://localhost:3000) and choose **Create a deck**. You need an account: if you are signed out, you are asked to sign in first and then brought back. On the form at `/new`, describe your business idea (20 to 2,000 characters) and choose **Generate pitch deck**.
-2. You are taken to the deck's page at `/decks/<id>`. It shows **Queued**, then **Generating**, and updates by itself every few seconds until the deck is ready, usually within a few minutes.
-3. A finished deck shows its title and 5 to 8 slides, each with an image. If generation fails, the page explains why and **Try again** starts a new deck from the same idea.
+### 4. Create a deck
 
-If the Inngest dev server is not running, decks stay **Queued**. After 10 minutes the page says generation is taking longer than expected and offers **Check again**.
+1. Open [localhost:3000](http://localhost:3000), choose **Create a deck** and create an account.
+2. Describe your idea and choose **Generate pitch deck**.
+3. The deck page shows **Queued**, then **Generating**, and presents the slides when they are
+   ready, usually within a few minutes.
 
-**Accounts.** Choose **Sign in** in the header, then **Create one**, to make an account with your name, email and a password of at least 8 characters. Once signed in, the header shows your initials; open that menu to sign out. Sessions last 7 days. Password reset and email verification are not available yet. Creating or retrying a deck requires a session, which the server checks, but decks are not linked to the account that created them yet.
+If the Inngest dev server is not running, decks stay **Queued**; after 10 minutes the page says so
+and offers **Check again**.
 
-**Deck links are public share links.** Decks are not tied to accounts yet: anyone with a deck's link can view it, and search engines are asked not to index deck pages. The page shows only the generated deck, never the idea you typed, but don't put confidential details in your idea. Generation is limited for everyone together (3 decks at a time, 30 per hour), and excess requests wait in a queue. Set a monthly spending limit on your OpenAI project as well.
+## Environment variables
 
-To query data in your own code, import the client in a Server Component, Server Action or route handler:
+Set these in `.env`, which is git-ignored. `.env.example` is the template.
+
+| Variable                 | Required          | Description                                                                                   |
+| ------------------------ | ----------------- | --------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`           | Yes               | Neon connection string, pooled (`-pooler`) or direct.                                         |
+| `DIRECT_URL`             | No                | Explicit direct Neon URL; overrides the one derived from `DATABASE_URL`.                      |
+| `OPENAI_API_KEY`         | Yes               | Deck text always; slide images when `USE_PLACEHOLDER_IMAGES="false"`.                         |
+| `USE_PLACEHOLDER_IMAGES` | No                | `"true"` (default) uses Picsum placeholders; `"false"` draws slides with OpenAI and ImageKit. |
+| `IMAGEKIT_PRIVATE_KEY`   | With real images  | ImageKit private key for uploading generated slides.                                          |
+| `BETTER_AUTH_SECRET`     | Yes               | Signs session cookies. At least 32 random characters: `openssl rand -base64 32`.              |
+| `BETTER_AUTH_URL`        | Yes               | The app's base URL, such as `http://localhost:3000`.                                          |
+| `INNGEST_DEV`            | Local development | `1` to send events to the local Inngest dev server.                                           |
+
+> **Why direct connections?** Neon's PgBouncer pooler rejects the session settings Prisma ORM 8
+> sends, so the app and the Prisma CLI connect to Neon's direct endpoint. `-pooler` is stripped
+> from the host automatically (`src/prisma/connection-url.ts`), and pooling happens in the server
+> process.
+
+## Commands
+
+Use `vp run <script>` for `package.json` scripts: `vp dev` and `vp build` are Vite built-ins and
+do not start this Next.js app.
+
+| Task                              | Command                            |
+| --------------------------------- | ---------------------------------- |
+| Start the dev server              | `vp run dev`                       |
+| Production build (emits contract) | `vp run build`                     |
+| Serve the production build        | `vp run start`                     |
+| Format, lint and type-check       | `vp check` (`vp check --fix`)      |
+| Run the tests                     | `vp test`                          |
+| Regenerate the Prisma contract    | `vp run contract:emit`             |
+| Add / remove a dependency         | `vp add <pkg>` / `vp remove <pkg>` |
+
+## Database
+
+The data model lives in `src/prisma/contract.prisma`, the single source of truth. It holds the
+`Deck` and `Slide` models plus Better Auth's tables (`user`, `session`, `account`, `verification`,
+`rateLimit`).
+
+```
+src/prisma/contract.prisma ──(prisma contract emit)──▶ contract.json + contract.d.ts
+                                                              │
+                                                              ▼
+Neon PostgreSQL ◀──────────────── src/prisma/db.ts (server-only client) ◀── Server Components / Actions
+```
+
+- **Create the tables:** `vp exec prisma db init` (safe to run again).
+- **Check for drift:** `vp exec prisma db verify`.
+- **Inspect the schema:** `vp exec prisma db schema`.
+- **Change the model:** edit `contract.prisma` and run `vp run contract:emit`. Apply it to a
+  development database with `vp exec prisma db update`, or plan and apply a migration with
+  `vp exec prisma migration plan --name <change>` and `vp exec prisma db migrate`.
+
+Never reset or drop a database to fix a migration problem. Keep Better Auth's fields exactly as
+declared, and don't use Better Auth's own `migrate` command.
+
+Query the database only on the server (Server Components, Server Actions, route handlers):
 
 ```tsx
 import { db } from "@/src/prisma/db";
@@ -159,28 +252,47 @@ import { db } from "@/src/prisma/db";
 const deck = await db.orm.public.Deck.select("id", "title", "status").first({ id });
 ```
 
-For uncached reads in a page, call `await connection()` from `next/server` and render the component inside `<Suspense>`. See `app/decks/[id]/_components/deck-view.tsx`.
+## Security and privacy
+
+- **Server-side checks:** creating, listing and retrying decks require a session, checked on the
+  server. Only a deck's owner can retry it or see it in **My decks**.
+- **Deck links are share links:** anyone with a deck's link can view it, and search engines are
+  asked not to index it. The page never shows the idea you typed, but keep confidential details
+  out of your idea anyway.
+- **Validation:** every boundary (forms, Server Actions, route params, Inngest events, agent
+  output) is validated with Zod.
+- **Prompt injection:** the reviewer treats the idea and deck as material to grade, never as
+  instructions, and fails closed if it cannot reach a verdict.
+- **Secrets** stay on the server: the database client and AI code are marked `server-only`, and
+  error messages shown to users never include provider details.
+- **Headers:** a Content Security Policy and other security headers are set in `next.config.ts`;
+  slide images load only from allowed hosts.
+- **Costs:** set a monthly spending limit on your OpenAI project as well as relying on the
+  built-in concurrency and throttle limits.
 
 ## Contributing
 
 1. Create a branch from `main`.
-2. For a non-trivial change, plan it with OpenSpec first (`/opsx:propose`). Specs live in `openspec/specs/`.
-3. Follow the project rules in [`AGENTS.md`](AGENTS.md):
-   - Use `vp` for every package command.
-   - Don't add dependencies without approval.
-   - Use the semantic design tokens.
-   - Validate input with Zod.
-   - Keep database access on the server.
-4. Before opening a pull request, run `vp exec tsc --noEmit` and `vp run build`.
-5. Commit the generated `src/prisma/contract.*` files and `migrations/` along with your contract changes. Never commit `.env`.
+2. For a non-trivial change, plan it with OpenSpec first (`/opsx:propose`). Specs live in
+   `openspec/specs/`.
+3. Follow the project rules in [`AGENTS.md`](AGENTS.md): use `vp` for every package command, ask
+   before adding dependencies, use the semantic design tokens and Pikaicons, validate input with
+   Zod, and keep database access on the server.
+4. Before opening a pull request, run `vp check`, `vp test` and `vp run build`.
+5. Commit the generated `src/prisma/contract.*` files and `migrations/` with contract changes.
+   Never commit `.env`.
 
 ## Roadmap
 
 - [x] Next.js 16 app shell, design system and security headers
 - [x] Prisma ORM 8 + Neon PostgreSQL data layer
-- [ ] Data model for pitch decks
-- [ ] AI-assisted pitch deck creation
-- [ ] Authentication and user accounts
+- [x] Deck and slide data model
+- [x] AI deck generation with structured outputs, guardrails and an independent reviewer
+- [x] Background generation with Inngest
+- [x] Whiteboard-style slide images
+- [x] Accounts, deck ownership and My decks
+- [x] Presenter with full-screen mode and spotlight
+- [ ] Password reset and email verification
 - [ ] Production deployment (hosting and production migration workflow)
 
 ## License
