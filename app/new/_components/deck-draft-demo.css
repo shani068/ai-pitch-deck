@@ -1,0 +1,327 @@
+/* The deck-drafting demo on /new. Everything is scoped under .dd (the Stage's wrapper class).
+   The kit's tokens are mapped onto the site's (app/globals.css), so the demo follows the site's
+   light and dark themes; the Stage's `theme` prop switches the kit's own inks and shadows. */
+
+.dd .ss-stage {
+  --ss-font: var(--font-inter), system-ui, sans-serif;
+  --ss-accent: var(--primary);
+  --ss-accent-soft: color-mix(in oklab, var(--primary) 12%, transparent);
+  --ss-accent-text: var(--primary);
+  --ss-canvas: var(--card);
+  --ss-surface: var(--card);
+  --ss-chrome: var(--card);
+  --ss-raised: var(--card);
+  --ss-text-strong: var(--foreground);
+  --ss-text: var(--muted-foreground);
+  --ss-text-faint: color-mix(in oklab, var(--muted-foreground) 72%, var(--card));
+  --ss-line: var(--border);
+  --ss-line-faint: color-mix(in oklab, var(--border) 70%, transparent);
+  --ss-well: var(--muted);
+  --ss-radius-window: 14px;
+  --ss-radius-md: var(--radius);
+
+  /* Pinned, bottom bleed: one window a gutter in from the top and sides of the tile, running
+     past its bottom edge, so the tile cuts only the window's empty foot. */
+  --gutter: 40px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--ss-well);
+}
+
+/* On dark, depth comes from a lighter surface: the tile sits a step below the window. */
+.dd .ss-stage[data-theme="dark"] {
+  --ss-well: oklch(0.13 0.02 272);
+}
+
+.dd .ss-stage[data-layout="compact"] {
+  --gutter: 16px;
+  border-radius: 20px;
+}
+
+.dd-win {
+  position: absolute;
+  top: var(--gutter);
+  left: var(--gutter);
+  width: calc(100% - 2 * var(--gutter));
+  height: 640px;
+  box-shadow: var(--ss-shadow-hero);
+}
+
+.dd-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--ss-surface);
+}
+
+/* The brief: the one input, quoted back at the top */
+.dd-brief {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--ss-line);
+}
+
+.dd-brief-label {
+  color: var(--ss-text);
+  font-family: var(--ss-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dd-brief-text {
+  color: var(--ss-text-strong);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Status and the one action */
+.dd-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px 8px;
+}
+
+.dd-status-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ss-text-strong);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dd-status-text .ss-spinner {
+  color: var(--ss-accent);
+}
+
+.dd-status-text .ss-check {
+  --ss-success: oklch(0.62 0.15 150);
+}
+
+/* The slide list, as the presenter shows it */
+.dd-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0 12px;
+  list-style: none;
+}
+
+.dd-row {
+  display: grid;
+  grid-template-columns: 20px 66px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  height: 58px;
+  padding: 0 8px;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.dd-row[data-selected] {
+  background: var(--ss-accent-soft);
+}
+
+.dd-num {
+  color: var(--ss-text);
+  font-family: var(--ss-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dd-lines {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dd-label {
+  color: var(--ss-text);
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+.dd-title {
+  overflow: hidden;
+  color: var(--ss-text-strong);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A bar and its words share one cell: the bar fades as the words arrive, in place */
+.dd-slot {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+}
+
+.dd-slot > * {
+  grid-area: 1 / 1;
+}
+
+.dd-sk {
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+}
+
+/* The thumbnail's placeholder, at the thumbnail's own size */
+.dd-thumb-sk {
+  height: 44px;
+  border-radius: 5px;
+  background: var(--ss-ink-2);
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-thumb-sk {
+  height: 36px;
+}
+
+/* A faint, slow shimmer while a slide is being written */
+.dd-sk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.45), transparent);
+  translate: -100% 0;
+  animation: dd-shimmer 1.6s ease-in-out infinite;
+}
+
+.dd .ss-stage[data-theme="dark"] .dd-sk::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+}
+
+@keyframes dd-shimmer {
+  to {
+    translate: 100% 0;
+  }
+}
+
+.dd-real {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dd-row[data-ready] .dd-sk {
+  opacity: 0;
+}
+
+.dd-row[data-ready] .dd-real {
+  opacity: 1;
+  transition: opacity 0.45s ease 0.08s;
+}
+
+/* The slide in miniature: a whiteboard stays a light page in both themes */
+.dd-thumb {
+  position: relative;
+  display: block;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: oklch(0.995 0.003 85);
+  box-shadow: inset 0 0 0 1px oklch(0.21 0.03 270 / 0.1);
+}
+
+.dd-thumb > span {
+  position: absolute;
+  border-radius: 2px;
+}
+
+.dd-thumb-title {
+  top: 9px;
+  left: 7px;
+  width: 30px;
+  height: 4px;
+  background: oklch(0.21 0.03 270 / 0.8);
+}
+
+.dd-thumb-copy {
+  top: 18px;
+  left: 7px;
+  width: 22px;
+  height: 3px;
+  background: oklch(0.21 0.03 270 / 0.25);
+}
+
+.dd-thumb > .dd-thumb-mark {
+  right: 7px;
+  bottom: 8px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--deck);
+  border-radius: 50%;
+}
+
+/* The reviewer's note, opened under the slide it is about */
+.dd-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 6px calc(8px + 20px + 12px);
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--ss-ink-1);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.dd-note .ss-check {
+  --ss-success: oklch(0.62 0.15 150);
+}
+
+.dd-note-who {
+  color: var(--ss-text-strong);
+  font-weight: 600;
+}
+
+.dd-note-text {
+  color: var(--ss-text);
+}
+
+/* Compact: the phone column. A tighter crop, no slide numbers, smaller thumbnails. */
+.dd .ss-stage[data-layout="compact"] .dd-brief {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-status {
+  padding: 12px 16px 6px;
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-list {
+  padding: 0 8px;
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-row {
+  grid-template-columns: 52px minmax(0, 1fr);
+  height: 54px;
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-num {
+  display: none;
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-thumb {
+  height: 36px;
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-thumb > .dd-thumb-mark {
+  right: 6px;
+  bottom: 6px;
+  width: 14px;
+  height: 14px;
+}
+
+.dd .ss-stage[data-layout="compact"] .dd-note {
+  margin-left: 8px;
+}

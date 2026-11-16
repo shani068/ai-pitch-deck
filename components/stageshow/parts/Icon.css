@@ -1,0 +1,12 @@
+/* Icon */
+
+@layer stageshow {
+  .ss-icon {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .ss-icon [stroke-width] {
+    stroke-width: var(--ss-icon-stroke, 2);
+  }
+}
