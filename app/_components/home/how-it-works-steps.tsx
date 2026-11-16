@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 
 import { SAMPLE_DECK } from "@/app/_content/sample-deck";
-import { LogoMark } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 import {
   ArrowRightIcon,
@@ -305,7 +304,6 @@ function StageScene({ active }: { active: number }) {
         style={{ translate: `${active * -6}px 0` }}
       >
         <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-          <LogoMark className="size-5" />
           <span className="truncate">{SAMPLE_DECK.deckTitle}</span>
         </span>
         <p className="mt-5 max-w-[16rem] font-heading text-xl leading-tight font-semibold tracking-tight text-balance sm:text-2xl">

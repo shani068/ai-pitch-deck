@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { SAMPLE_DECK, SAMPLE_SLIDE_LABELS } from "@/app/_content/sample-deck";
-import { LogoMark } from "@/components/brand/logo";
 import { Container } from "@/components/site/container";
 import { CREATE_DECK_HREF } from "@/components/site/nav-links";
 import { cn } from "@/lib/utils";
@@ -76,9 +75,6 @@ export function ExampleDeck() {
 
             <div className="relative flex flex-wrap items-center justify-between gap-3 px-2 pt-2 pb-5 sm:px-3 sm:pt-3 sm:pb-6">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-card shadow-sm ring-1 ring-foreground/8">
-                  <LogoMark className="size-6" />
-                </span>
                 <h3 className="text-lg font-semibold tracking-tight text-balance sm:text-xl">
                   {SAMPLE_DECK.deckTitle}
                 </h3>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Logo } from "@/components/brand/logo";
+import { Wordmark } from "@/components/brand/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeMenu } from "@/components/theme/theme-menu";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export function SiteFooter() {
             aria-label="AI Pitch Deck home"
             className="-mx-1 rounded-lg px-1 py-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            <Logo />
+            <Wordmark />
           </Link>
           <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
             Investor-ready pitch decks from a single business idea, written by AI and checked by an

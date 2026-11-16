@@ -1,5 +1,4 @@
 import { SAMPLE_DECK } from "@/app/_content/sample-deck";
-import { LogoMark } from "@/components/brand/logo";
 import { Container } from "@/components/site/container";
 import {
   CheckTickCircleIcon,
@@ -42,12 +41,6 @@ export function AuthShell({
       <Container className="relative grid gap-12 py-12 sm:py-16 lg:grid-cols-2 lg:items-center lg:gap-16 lg:py-20">
         <div className="mx-auto flex w-full max-w-md flex-col gap-8">
           <div className="flex animate-rise flex-col items-center gap-4 text-center lg:items-start lg:text-left">
-            <span
-              aria-hidden="true"
-              className="flex size-14 items-center justify-center rounded-[1.25rem] bg-card/80 shadow-sm ring-1 shadow-primary/10 ring-foreground/8 backdrop-blur-sm dark:ring-foreground/10"
-            >
-              <LogoMark className="size-8" />
-            </span>
             <div className="flex flex-col gap-2">
               <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
                 {title}
@@ -114,7 +107,6 @@ function AuthAside() {
         <div className="grid grid-cols-[1.2fr_0.8fr] gap-4 rounded-2xl bg-card p-5 shadow-2xl ring-1 shadow-primary/15 ring-foreground/10">
           <div className="flex min-w-0 flex-col">
             <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <LogoMark className="size-4" />
               <span className="truncate">{SAMPLE_DECK.deckTitle}</span>
             </span>
             <p className="mt-6 font-heading text-lg leading-tight font-semibold tracking-tight text-balance">

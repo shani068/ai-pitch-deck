@@ -1,5 +1,4 @@
 import { SAMPLE_DECK, SAMPLE_SLIDE_LABELS } from "@/app/_content/sample-deck";
-import { LogoMark } from "@/components/brand/logo";
 import { Container } from "@/components/site/container";
 import { cn } from "@/lib/utils";
 import {
@@ -190,9 +189,6 @@ function ReviewMockup() {
   return (
     <MockupPanel className="mx-auto max-w-sm">
       <div className="flex items-center gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
-          <LogoMark className="size-6" />
-        </span>
         <span className="flex min-w-0 flex-col">
           <span className="truncate text-sm font-semibold">{SAMPLE_DECK.deckTitle}</span>
           <span className="text-xs text-muted-foreground">Independent reviewer</span>
