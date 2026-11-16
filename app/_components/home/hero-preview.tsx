@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 
 import { SAMPLE_DECK } from "@/app/_content/sample-deck";
-import { LogoMark } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
 const STEP_MS = 3200;
@@ -94,7 +93,6 @@ export function HeroPreview() {
               className="flex min-w-0 animate-rise flex-col [animation-duration:700ms]"
             >
               <span className="flex items-center gap-1.5 text-[0.65rem] font-medium text-muted-foreground sm:text-xs">
-                <LogoMark className="size-4" />
                 <span className="font-mono tabular-nums">
                   {number(active + 1)} / {number(SLIDES.length)}
                 </span>
@@ -140,7 +138,6 @@ export function HeroPreview() {
         className="absolute bottom-0 left-4 rounded-full bg-linear-to-r from-primary via-highlight to-primary p-px shadow-xl shadow-primary/20 sm:left-8"
       >
         <div className="flex items-center gap-2.5 rounded-full bg-card/95 px-4 py-2 text-sm font-medium text-card-foreground backdrop-blur-xl">
-          <LogoMark className="size-5" />
           <span className="tabular-nums">
             {stopped ? "Deck ready" : `Drafting slide ${active + 1} of ${SLIDES.length}`}
           </span>

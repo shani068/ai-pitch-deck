@@ -5,6 +5,7 @@ import { AlertCircleIcon, ClockIcon } from "@/src/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 import { currentPollPlan, type DeckStatus } from "@/src/decks/polling";
 import { getDeckForView, type DeckForView } from "@/src/decks/queries";
 import { DeckIdSchema } from "@/src/decks/validation";
@@ -14,6 +15,8 @@ import { DeckPresenter } from "./deck-presenter";
 import { RetryForm } from "./retry-form";
 import { DeckStatusBadge } from "../../_components/deck-status-badge";
 import { allowedImageUrl, isDrawnSlideImage } from "../../_components/slide-image-url";
+
+const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 
 const GENERIC_FAILURE_MESSAGE = "The pitch deck could not be generated. Please try again.";
 
@@ -37,15 +40,40 @@ export async function DeckView({ params }: { params: Promise<{ id: string }> }) 
   const plan = currentPollPlan(deck.status, deck.createdAt);
   const stale = plan.kind === "stale";
 
+  const complete = deck.status === "COMPLETE";
+
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <DeckStatusBadge status={deck.status} />
-        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {deck.status === "COMPLETE" && deck.title ? deck.title : "Your pitch deck"}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs tracking-wider text-muted-foreground uppercase">
+          <span>Pitch deck</span>
+          {complete ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                {deck.slides.length} {deck.slides.length === 1 ? "slide" : "slides"}
+              </span>
+              <span aria-hidden="true">·</span>
+              <time dateTime={deck.createdAt.toISOString()}>
+                {dateFormat.format(deck.createdAt)}
+              </time>
+            </>
+          ) : (
+            <DeckStatusBadge
+              status={deck.status}
+              className="font-sans tracking-normal normal-case"
+            />
+          )}
+        </p>
+        <h1 className="max-w-4xl text-3xl leading-[1.1] font-semibold tracking-[-0.025em] text-balance sm:text-4xl">
+          {complete && deck.title ? deck.title : "Your pitch deck"}
         </h1>
-        {/* One live region in every state, so status changes are announced after a refresh. */}
-        <output aria-live="polite" className="flex items-center gap-2 text-muted-foreground">
+        {/* One live region in every state, so status changes are announced after a refresh. Once
+            the deck is ready, the slides say so on their own; the sentence stays for screen readers. */}
+        <output
+          aria-live="polite"
+          className={cn("flex items-center gap-2 text-muted-foreground", complete && "sr-only")}
+        >
           {plan.kind === "poll" ? <Spinner aria-hidden="true" /> : null}
           {stale ? "This is taking longer than expected." : STATUS_TEXT[deck.status]}
         </output>
@@ -104,27 +132,28 @@ function DeckBody({ deck, stale }: { deck: DeckForView; stale: boolean }) {
     );
   }
 
-  // The presenter's shape: toolbar, then the slide column beside (or above) the slide list.
+  // The presenter's shape: the slide rail beside (or below) the canvas and its toolbar.
   return (
-    <div className="flex flex-col gap-4" aria-hidden="true">
-      <div className="flex items-center justify-between gap-3">
-        <Skeleton className="h-5 w-16" />
-        <Skeleton className="h-9 w-40" />
+    <div
+      className="grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border bg-card lg:grid-cols-[11rem_minmax(0,1fr)]"
+      aria-hidden="true"
+    >
+      <div className="flex min-w-0 flex-col">
+        <div className="bg-muted/60 p-3 sm:p-6 lg:p-8">
+          <Skeleton className="aspect-[3/2] w-full rounded-lg bg-foreground/5" />
+        </div>
+        <div className="flex h-14 items-center justify-between gap-3 border-t px-3 sm:px-4">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-8 w-36" />
+        </div>
       </div>
-      <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <div className="flex flex-col gap-4">
-          <Skeleton className="aspect-[3/2] w-full rounded-2xl" />
-          <Skeleton className="h-11 w-full rounded-xl" />
-        </div>
-        <div className="flex flex-col gap-1.5 lg:order-first">
-          {[0, 1, 2, 3, 4].map((index) => (
-            <div key={index} className="flex items-center gap-3 p-1.5">
-              <Skeleton className="h-3 w-5" />
-              <Skeleton className="aspect-[3/2] w-24 shrink-0 rounded-md sm:w-28" />
-              <Skeleton className="h-4 flex-1" />
-            </div>
-          ))}
-        </div>
+      <div className="flex gap-3 overflow-hidden border-t p-3 lg:order-first lg:flex-col lg:border-t-0 lg:border-r">
+        {[0, 1, 2, 3, 4].map((index) => (
+          <div key={index} className="flex w-32 shrink-0 gap-2 lg:w-auto">
+            <Skeleton className="h-3 w-4" />
+            <Skeleton className="aspect-[3/2] flex-1 rounded-md" />
+          </div>
+        ))}
       </div>
     </div>
   );

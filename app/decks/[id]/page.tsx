@@ -29,10 +29,10 @@ function DeckSkeleton() {
   return (
     <div className="flex flex-col gap-8" aria-busy="true">
       <div className="flex flex-col gap-3">
-        <Skeleton className="h-5 w-24 rounded-4xl" />
+        <Skeleton className="h-4 w-48" />
         <Skeleton className="h-9 w-3/4" />
       </div>
-      <Skeleton className="h-64 w-full rounded-xl" />
+      <Skeleton className="aspect-[16/9] w-full rounded-2xl" />
     </div>
   );
 }

@@ -25,8 +25,8 @@
 
 ## Icons
 
-- Use Pikaicons. Don't hand-draw SVGs or add another icon library. The one exception is the brand mark in
-  `components/brand/logo.tsx` (and its copy in `app/icon.svg`).
+- Use Pikaicons. Don't hand-draw SVGs or add another icon library. The brand is the text wordmark in
+  `components/brand/logo.tsx`; there is no logo mark or favicon.
 - Find: `vp dlx pikaicons search home "user avatar"` (each argument is one query; quote phrases)
 - React: `vp dlx pikaicons add <name…>` writes components to `src/components/icons/` (config in
   `pikaicons.json`); import them from `@/src/components/icons`. These files are generated: don't edit them.
