@@ -11,6 +11,9 @@ const generated = [
   ".agents/skills/**",
   ".claude/skills/**",
   ".cursor/skills/**",
+  // The Stageshow kit, vendored from .claude/skills/stageshow/kit (MIT, see its LICENSE). Only
+  // its Icon part was changed, to draw Pikaicons; keep it close to upstream rather than restyle it.
+  "components/stageshow/**",
 ];
 
 export default defineConfig({
